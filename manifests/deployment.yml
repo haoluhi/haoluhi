@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "myakscluster0502-d880"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "myakscluster0502-d880"
+  template:
+    metadata:
+      labels:
+        app: "myakscluster0502-d880"
+    spec:
+      containers:
+        - name: "myakscluster0502-d880"
+          image: "hlhelmacr0221.azurecr.io/myakscluster0502"
+          ports:
+          - containerPort: 80
