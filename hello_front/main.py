@@ -60,10 +60,10 @@ COUNT = 0
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-
+    global COUNT
     if request.method == 'GET':
-
-        return "Hello " + str(COUNT += 1)
+        COUNT = COUNT + 1
+        return "Hello " + str(COUNT)
 
 if __name__ == "__main__":
     app.run()
