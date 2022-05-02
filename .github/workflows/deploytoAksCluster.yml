@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: hlhelmacr0221.azurecr.io
+        username: ${{ secrets.acr_hlhelmacr0221_username }}
+        password: ${{ secrets.acr_hlhelmacr0221_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/" -f  "Dockerfile" -t hlhelmacr0221.azurecr.io/myakscluster0502:${{ github.sha }} --label dockerfile-path=Dockerfile
+        docker push hlhelmacr0221.azurecr.io/myakscluster0502:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_myakscluster0502_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep myakscluster0502aeff | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace myakscluster0502aeff`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: myakscluster0502aeff
+        container-registry-url: hlhelmacr0221.azurecr.io
+        container-registry-username: ${{ secrets.acr_hlhelmacr0221_username }}
+        container-registry-password: ${{ secrets.acr_hlhelmacr0221_password }}
+        secret-name: myaksclusterdockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: myakscluster0502aeff
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          hlhelmacr0221.azurecr.io/myakscluster0502:${{ github.sha }}
+        imagepullsecrets: |
+          myaksclusterdockerauth
