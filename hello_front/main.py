@@ -63,7 +63,7 @@ def index():
     global COUNT
     if request.method == 'GET':
         COUNT = COUNT + 1
-        return "Hello " + str(COUNT)
+        return "Hello World" + str(COUNT)
 
 if __name__ == "__main__":
     app.run()
